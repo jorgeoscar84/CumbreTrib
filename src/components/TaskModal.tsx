@@ -12,9 +12,9 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ task, teamMembers, onClose, onSave, onDelete }: TaskModalProps) {
-  const { hasPermission } = useAuth();
-  const canEdit = hasPermission('edit:planning');
-  const canDelete = hasPermission('delete:task');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEdit = hasPermission('edit:planning', currentOrg?.id, currentEvent?.id);
+  const canDelete = hasPermission('delete:task', currentOrg?.id, currentEvent?.id);
 
   const [editedTask, setEditedTask] = useState<Task>(task);
   const [isEditing, setIsEditing] = useState(false);

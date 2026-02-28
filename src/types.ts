@@ -1,22 +1,36 @@
-export type Role = 'SUPERADMIN' | 'ADMIN' | 'COLLABORATOR';
+export type OrgRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type EventRole = 'DIRECTOR' | 'COORDINATOR' | 'VIEWER';
 
 export type Permission = 
-  | 'manage:users' // Superadmin only
-  | 'manage:finances' // Superadmin, Admin
-  | 'manage:config' // Superadmin, Admin
-  | 'edit:planning' // All
-  | 'delete:task' // Superadmin, Admin
-  | 'edit:speakers' // All
-  | 'edit:sponsors' // Superadmin, Admin
-  | 'edit:alliances' // All
-  | 'edit:marketing'; // All
+  | 'manage:org' // Org OWNER, ADMIN
+  | 'create:event' // Org OWNER, ADMIN
+  | 'manage:team' // Event DIRECTOR
+  | 'manage:finances' // Event DIRECTOR
+  | 'manage:config' // Event DIRECTOR
+  | 'edit:planning' // Event DIRECTOR, COORDINATOR
+  | 'delete:task' // Event DIRECTOR
+  | 'edit:speakers' // Event DIRECTOR, COORDINATOR
+  | 'edit:sponsors' // Event DIRECTOR, COORDINATOR
+  | 'edit:alliances' // Event DIRECTOR, COORDINATOR
+  | 'edit:marketing'; // Event DIRECTOR, COORDINATOR
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: Role;
   avatar?: string;
+}
+
+export interface OrgMember {
+  userId: string;
+  role: OrgRole;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  members: OrgMember[];
+  projects: Project[];
 }
 
 export interface AgendaItem {
@@ -31,8 +45,10 @@ export interface AgendaItem {
 
 export interface TeamMember {
   id: number;
+  userId?: string;
   name: string;
-  role: string;
+  role: EventRole;
+  customTitle?: string;
   email: string;
   phone: string;
   description: string;
@@ -134,9 +150,12 @@ export interface MarketingMetric {
   lastUpdated: string;
 }
 
+
+
 export interface Project {
   id: string;
   name: string;
+  organizationId: string;
   config: EventConfig;
   tasks: Task[];
   budgetItems: BudgetItem[];

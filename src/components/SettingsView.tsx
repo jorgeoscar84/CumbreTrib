@@ -13,8 +13,8 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({ config, setConfig, project, updateProject, onDeleteProject }: SettingsViewProps) {
-  const { hasPermission } = useAuth();
-  const canManageConfig = hasPermission('manage:config');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canManageConfig = hasPermission('manage:config', currentOrg?.id, currentEvent?.id);
 
   const [tempConfig, setTempConfig] = useState<EventConfig>({ ...config });
   const [isSaved, setIsSaved] = useState(false);

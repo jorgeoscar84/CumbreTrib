@@ -11,8 +11,8 @@ interface MarketingViewProps {
 }
 
 export default function MarketingView({ campaigns, setCampaigns, metrics, setMetrics }: MarketingViewProps) {
-  const { hasPermission } = useAuth();
-  const canEditMarketing = hasPermission('edit:marketing');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEditMarketing = hasPermission('edit:marketing', currentOrg?.id, currentEvent?.id);
 
   // Campaign State
   const [isAddingCampaign, setIsAddingCampaign] = useState(false);

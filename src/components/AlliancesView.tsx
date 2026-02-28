@@ -11,8 +11,8 @@ interface AlliancesViewProps {
 }
 
 export default function AlliancesView({ universities, setUniversities, config, setConfig }: AlliancesViewProps) {
-  const { hasPermission } = useAuth();
-  const canEditAlliances = hasPermission('edit:alliances');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEditAlliances = hasPermission('edit:alliances', currentOrg?.id, currentEvent?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

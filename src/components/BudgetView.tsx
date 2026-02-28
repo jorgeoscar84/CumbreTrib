@@ -9,8 +9,8 @@ interface BudgetViewProps {
 }
 
 export default function BudgetView({ items, setItems }: BudgetViewProps) {
-  const { hasPermission } = useAuth();
-  const canManageFinances = hasPermission('manage:finances');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canManageFinances = hasPermission('manage:finances', currentOrg?.id, currentEvent?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);

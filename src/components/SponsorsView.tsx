@@ -11,8 +11,8 @@ interface SponsorsViewProps {
 }
 
 export default function SponsorsView({ sponsors, setSponsors, config, setConfig }: SponsorsViewProps) {
-  const { hasPermission } = useAuth();
-  const canEditSponsors = hasPermission('edit:sponsors');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEditSponsors = hasPermission('edit:sponsors', currentOrg?.id, currentEvent?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

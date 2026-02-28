@@ -11,9 +11,9 @@ interface PlanningViewProps {
 }
 
 export default function PlanningView({ tasks, setTasks, teamMembers = [] }: PlanningViewProps) {
-  const { hasPermission } = useAuth();
-  const canEdit = hasPermission('edit:planning');
-  const canDelete = hasPermission('delete:task');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEdit = hasPermission('edit:planning', currentOrg?.id, currentEvent?.id);
+  const canDelete = hasPermission('delete:task', currentOrg?.id, currentEvent?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);

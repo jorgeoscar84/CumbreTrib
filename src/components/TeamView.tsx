@@ -20,13 +20,13 @@ export default function TeamView({ teamMembers, setTeamMembers }: TeamViewProps)
   ]);
 
   const [isAddingRole, setIsAddingRole] = useState(false);
-  const [newRole, setNewRole] = useState<Partial<TeamMember>>({ name: '', role: '', email: '', phone: '', description: '' });
+  const [newRole, setNewRole] = useState<Partial<TeamMember>>({ name: '', role: 'COORDINATOR', customTitle: '', email: '', phone: '', description: '' });
 
   const handleAddRole = () => {
-    if (newRole.role && newRole.description && newRole.name) {
+    if (newRole.role && newRole.description && newRole.name && newRole.customTitle) {
       setTeamMembers([...teamMembers, { id: Date.now(), ...newRole } as TeamMember]);
       setIsAddingRole(false);
-      setNewRole({ name: '', role: '', email: '', phone: '', description: '' });
+      setNewRole({ name: '', role: 'COORDINATOR', customTitle: '', email: '', phone: '', description: '' });
     }
   };
 
@@ -72,10 +72,22 @@ export default function TeamView({ teamMembers, setTeamMembers }: TeamViewProps)
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-blue-900 mb-1">Rol / Cargo *</label>
-                <input 
+                <label className="block text-xs font-medium text-blue-900 mb-1">Nivel de Permiso *</label>
+                <select 
                   value={newRole.role}
-                  onChange={e => setNewRole({...newRole, role: e.target.value})}
+                  onChange={e => setNewRole({...newRole, role: e.target.value as any})}
+                  className="w-full px-3 py-2 rounded-lg border border-blue-200 bg-white"
+                >
+                  <option value="DIRECTOR">Director (Acceso Total)</option>
+                  <option value="COORDINATOR">Coordinador (Acceso de Edición)</option>
+                  <option value="VIEWER">Espectador (Solo Lectura)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-blue-900 mb-1">Cargo / Título *</label>
+                <input 
+                  value={newRole.customTitle}
+                  onChange={e => setNewRole({...newRole, customTitle: e.target.value})}
                   className="w-full px-3 py-2 rounded-lg border border-blue-200"
                   placeholder="Ej. Coordinador de Voluntarios"
                 />
@@ -112,7 +124,7 @@ export default function TeamView({ teamMembers, setTeamMembers }: TeamViewProps)
             <div className="flex gap-2">
               <button 
                 onClick={handleAddRole} 
-                disabled={!newRole.name || !newRole.role || !newRole.description}
+                disabled={!newRole.name || !newRole.role || !newRole.customTitle || !newRole.description}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Guardar Miembro
@@ -128,7 +140,7 @@ export default function TeamView({ teamMembers, setTeamMembers }: TeamViewProps)
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-slate-900 font-bold text-lg">{member.name}</h3>
-                  <span className="text-blue-600 font-medium text-sm">{member.role}</span>
+                  <span className="text-blue-600 font-medium text-sm">{member.customTitle || member.role}</span>
                 </div>
                 <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold">
                   {member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}

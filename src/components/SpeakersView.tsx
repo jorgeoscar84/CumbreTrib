@@ -9,8 +9,8 @@ interface SpeakersViewProps {
 }
 
 export default function SpeakersView({ speakers, setSpeakers }: SpeakersViewProps) {
-  const { hasPermission } = useAuth();
-  const canEditSpeakers = hasPermission('edit:speakers');
+  const { hasPermission, currentOrg, currentEvent } = useAuth();
+  const canEditSpeakers = hasPermission('edit:speakers', currentOrg?.id, currentEvent?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

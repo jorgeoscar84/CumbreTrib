@@ -21,7 +21,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { NAV_ITEMS, INITIAL_TASKS, BUDGET_ITEMS, SPEAKERS, SPONSORS } from './constants';
-import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig, TeamMember, Project } from './types';
+import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig, TeamMember, Project, Organization } from './types';
 import { useAuth, MOCK_USERS } from './context/AuthContext';
 import { motion } from 'motion/react';
 import Calendar from './components/Calendar';
@@ -94,17 +94,25 @@ const TaskRow: React.FC<{ task: Task; onToggleStatus: (id: number) => void }> = 
 };
 
 export default function App() {
-  const { currentUser, login, hasPermission } = useAuth();
+  const { currentUser, login, setCurrentOrg, setCurrentEvent } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const [showOrgMenu, setShowOrgMenu] = useState(false);
 
   // Application State
+  const [organizations, setOrganizations] = useState<Organization[]>([
+    { id: 'org-1', name: 'Mi Organización Principal', members: [{ userId: 'u1', role: 'OWNER' }, { userId: 'u2', role: 'ADMIN' }, { userId: 'u3', role: 'MEMBER' }], projects: [] },
+    { id: 'org-2', name: 'Organización Secundaria', members: [{ userId: 'u1', role: 'OWNER' }], projects: [] }
+  ]);
+  const [currentOrgId, setCurrentOrgId] = useState<string>('org-1');
+
   const [projects, setProjects] = useState<Project[]>([
     {
       id: '1',
       name: 'Cumbre Tributaria Ecuador',
+      organizationId: 'org-1',
       config: {
         eventName: 'Cumbre Tributaria Ecuador',
         eventDate: '2026-06-15',
@@ -142,23 +150,33 @@ export default function App() {
         { id: 3, name: 'Tasa de Apertura Email', value: 0, target: 25, unit: 'percent', platform: 'email', lastUpdated: new Date().toISOString().split('T')[0] },
       ],
       teamMembers: [
-        { id: 1, name: 'Jorge Ron', role: 'Director General', email: 'jorge@eventer.com', phone: '0990000001', description: 'Supervisa todo, toma decisiones finales, relaciones institucionales de alto nivel.' },
-        { id: 2, name: 'María Pérez', role: 'Coord. Logística', email: 'maria@eventer.com', phone: '0990000002', description: 'Gestión del venue, proveedores, montaje, transporte, catering, equipo AV.' },
-        { id: 3, name: 'Carlos López', role: 'Dir. Marketing', email: 'carlos@eventer.com', phone: '0990000003', description: 'Estrategia digital/offline, campañas, PR y medios.' },
-        { id: 4, name: 'Ana Silva', role: 'Coord. Ponentes', email: 'ana@eventer.com', phone: '0990000004', description: 'Contacto speakers, diseño de agenda, materiales.' },
-        { id: 5, name: 'Luis Torres', role: 'Coord. Comercial', email: 'luis@eventer.com', phone: '0990000005', description: 'Venta de paquetes de patrocinio, relación con auspiciantes.' },
-        { id: 6, name: 'Elena Gómez', role: 'Coord. Alianzas', email: 'elena@eventer.com', phone: '0990000006', description: 'Relación con universidades, colegios profesionales y gremios.' },
-        { id: 7, name: 'Pedro Ruiz', role: 'Coord. Experiencia', email: 'pedro@eventer.com', phone: '0990000007', description: 'Registro, acreditación, kit de bienvenida, atención al público.' },
-        { id: 8, name: 'Sofía Castro', role: 'Coord. Tecnología', email: 'sofia@eventer.com', phone: '0990000008', description: 'Plataforma de ticketing, app, streaming, Wi-Fi.' },
-        { id: 9, name: 'Diego Vega', role: 'Coord. Legal', email: 'diego@eventer.com', phone: '0990000009', description: 'Permisos municipales, plan de contingencia, seguros.' },
+        { id: 1, userId: 'u1', name: 'Ana Silva', role: 'DIRECTOR', customTitle: 'Director General', email: 'ana@event.com', phone: '0990000001', description: 'Supervisa todo, toma decisiones finales, relaciones institucionales de alto nivel.' },
+        { id: 2, userId: 'u2', name: 'Carlos López', role: 'DIRECTOR', customTitle: 'Dir. Marketing', email: 'carlos@event.com', phone: '0990000003', description: 'Estrategia digital/offline, campañas, PR y medios.' },
+        { id: 3, userId: 'u3', name: 'Luis Torres', role: 'COORDINATOR', customTitle: 'Coord. Comercial', email: 'luis@event.com', phone: '0990000005', description: 'Venta de paquetes de patrocinio, relación con auspiciantes.' },
+        { id: 4, name: 'María Pérez', role: 'COORDINATOR', customTitle: 'Coord. Logística', email: 'maria@eventer.com', phone: '0990000002', description: 'Gestión del venue, proveedores, montaje, transporte, catering, equipo AV.' },
+        { id: 5, name: 'Elena Gómez', role: 'COORDINATOR', customTitle: 'Coord. Alianzas', email: 'elena@eventer.com', phone: '0990000006', description: 'Relación con universidades, colegios profesionales y gremios.' },
+        { id: 6, name: 'Pedro Ruiz', role: 'COORDINATOR', customTitle: 'Coord. Experiencia', email: 'pedro@eventer.com', phone: '0990000007', description: 'Registro, acreditación, kit de bienvenida, atención al público.' },
+        { id: 7, name: 'Sofía Castro', role: 'COORDINATOR', customTitle: 'Coord. Tecnología', email: 'sofia@eventer.com', phone: '0990000008', description: 'Plataforma de ticketing, app, streaming, Wi-Fi.' },
+        { id: 8, name: 'Diego Vega', role: 'COORDINATOR', customTitle: 'Coord. Legal', email: 'diego@eventer.com', phone: '0990000009', description: 'Permisos municipales, plan de contingencia, seguros.' },
       ]
     }
   ]);
   const [currentProjectId, setCurrentProjectId] = useState<string>('1');
 
-  const currentProject = projects.find(p => p.id === currentProjectId) || projects[0];
+  const currentOrg = organizations.find(o => o.id === currentOrgId) || organizations[0];
+  const orgProjects = projects.filter(p => p.organizationId === currentOrgId);
+  const currentProject = orgProjects.find(p => p.id === currentProjectId) || orgProjects[0] || null;
+
+  useEffect(() => {
+    setCurrentOrg(currentOrg);
+  }, [currentOrg, setCurrentOrg]);
+
+  useEffect(() => {
+    setCurrentEvent(currentProject);
+  }, [currentProject, setCurrentEvent]);
 
   const updateCurrentProject = (updates: Partial<Project>) => {
+    if (!currentProject) return;
     setProjects(projects.map(p => p.id === currentProjectId ? { ...p, ...updates } : p));
   };
 
@@ -167,6 +185,7 @@ export default function App() {
     const newProject: Project = {
       id: newId,
       name: 'Nuevo Proyecto',
+      organizationId: currentOrgId,
       config: {
         eventName: 'Nuevo Proyecto',
         eventDate: new Date().toISOString().split('T')[0],
@@ -184,66 +203,136 @@ export default function App() {
       universities: [],
       campaigns: [],
       marketingMetrics: [],
-      teamMembers: []
+      teamMembers: currentUser ? [{
+        id: Date.now(),
+        userId: currentUser.id,
+        name: currentUser.name,
+        role: 'DIRECTOR',
+        customTitle: 'Creador',
+        email: currentUser.email,
+        phone: '',
+        description: 'Creador del evento'
+      }] : []
     };
     setProjects([...projects, newProject]);
     setCurrentProjectId(newId);
   };
 
   const deleteCurrentProject = () => {
-    if (projects.length <= 1) return;
+    if (orgProjects.length <= 1) return;
     const newProjects = projects.filter(p => p.id !== currentProjectId);
     setProjects(newProjects);
-    setCurrentProjectId(newProjects[0].id);
+    const remainingOrgProjects = newProjects.filter(p => p.organizationId === currentOrgId);
+    if (remainingOrgProjects.length > 0) {
+      setCurrentProjectId(remainingOrgProjects[0].id);
+    }
     setActiveTab('dashboard');
   };
 
+  const createNewOrganization = () => {
+    const newId = `org-${Date.now()}`;
+    const newOrg: Organization = {
+      id: newId,
+      name: 'Nueva Organización',
+      members: currentUser ? [{ userId: currentUser.id, role: 'OWNER' }] : [],
+      projects: []
+    };
+    setOrganizations([...organizations, newOrg]);
+    setCurrentOrgId(newId);
+    
+    // Create a default project for the new org
+    const newProjectId = Date.now().toString();
+    const newProject: Project = {
+      id: newProjectId,
+      name: 'Nuevo Proyecto',
+      organizationId: newId,
+      config: {
+        eventName: 'Nuevo Proyecto',
+        eventDate: new Date().toISOString().split('T')[0],
+        targetAttendees: 0,
+        sponsorsTarget: 0,
+        totalBudget: 0,
+        universityTarget: 0,
+        studentTarget: 0,
+        sponsorTargets: { Diamante: 0, Oro: 0, Plata: 0, Bronce: 0 }
+      },
+      tasks: [],
+      budgetItems: [],
+      speakers: [],
+      sponsors: [],
+      universities: [],
+      campaigns: [],
+      marketingMetrics: [],
+      teamMembers: currentUser ? [{
+        id: Date.now(),
+        userId: currentUser.id,
+        name: currentUser.name,
+        role: 'DIRECTOR',
+        customTitle: 'Creador',
+        email: currentUser.email,
+        phone: '',
+        description: 'Creador del evento'
+      }] : []
+    };
+    setProjects([...projects, newProject]);
+    setCurrentProjectId(newProjectId);
+  };
+
   // State accessors for current project
-  const eventConfig = currentProject.config;
+  const eventConfig = currentProject?.config;
   const setEventConfig = (config: EventConfig | ((prev: EventConfig) => EventConfig)) => {
+    if (!currentProject) return;
     updateCurrentProject({ config: typeof config === 'function' ? config(currentProject.config) : config });
     if (typeof config !== 'function' || (config as any).eventName) {
       updateCurrentProject({ name: typeof config === 'function' ? config(currentProject.config).eventName : config.eventName });
     }
   };
 
-  const tasks = currentProject.tasks;
+  const tasks = currentProject?.tasks || [];
   const setTasks = (tasks: Task[] | ((prev: Task[]) => Task[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ tasks: typeof tasks === 'function' ? tasks(currentProject.tasks) : tasks });
   };
 
-  const budgetItems = currentProject.budgetItems;
+  const budgetItems = currentProject?.budgetItems || [];
   const setBudgetItems = (budgetItems: BudgetItem[] | ((prev: BudgetItem[]) => BudgetItem[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ budgetItems: typeof budgetItems === 'function' ? budgetItems(currentProject.budgetItems) : budgetItems });
   };
 
-  const speakers = currentProject.speakers;
+  const speakers = currentProject?.speakers || [];
   const setSpeakers = (speakers: Speaker[] | ((prev: Speaker[]) => Speaker[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ speakers: typeof speakers === 'function' ? speakers(currentProject.speakers) : speakers });
   };
 
-  const sponsors = currentProject.sponsors;
+  const sponsors = currentProject?.sponsors || [];
   const setSponsors = (sponsors: Sponsor[] | ((prev: Sponsor[]) => Sponsor[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ sponsors: typeof sponsors === 'function' ? sponsors(currentProject.sponsors) : sponsors });
   };
 
-  const universities = currentProject.universities;
+  const universities = currentProject?.universities || [];
   const setUniversities = (universities: University[] | ((prev: University[]) => University[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ universities: typeof universities === 'function' ? universities(currentProject.universities) : universities });
   };
 
-  const campaigns = currentProject.campaigns;
+  const campaigns = currentProject?.campaigns || [];
   const setCampaigns = (campaigns: Campaign[] | ((prev: Campaign[]) => Campaign[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ campaigns: typeof campaigns === 'function' ? campaigns(currentProject.campaigns) : campaigns });
   };
 
-  const marketingMetrics = currentProject.marketingMetrics;
+  const marketingMetrics = currentProject?.marketingMetrics || [];
   const setMarketingMetrics = (marketingMetrics: MarketingMetric[] | ((prev: MarketingMetric[]) => MarketingMetric[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ marketingMetrics: typeof marketingMetrics === 'function' ? marketingMetrics(currentProject.marketingMetrics) : marketingMetrics });
   };
 
-  const teamMembers = currentProject.teamMembers;
+  const teamMembers = currentProject?.teamMembers || [];
   const setTeamMembers = (teamMembers: TeamMember[] | ((prev: TeamMember[]) => TeamMember[])) => {
+    if (!currentProject) return;
     updateCurrentProject({ teamMembers: typeof teamMembers === 'function' ? teamMembers(currentProject.teamMembers) : teamMembers });
   };
 
@@ -253,6 +342,7 @@ export default function App() {
   
   // Calculate days remaining
   const calculateDaysRemaining = () => {
+    if (!eventConfig) return 0;
     const today = new Date();
     const eventDate = new Date(eventConfig.eventDate);
     const diffTime = Math.abs(eventDate.getTime() - today.getTime());
@@ -272,6 +362,27 @@ export default function App() {
   };
 
   const renderContent = () => {
+    if (!currentProject || !eventConfig) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+            <Briefcase className="w-8 h-8 text-indigo-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">No hay eventos en esta organización</h2>
+          <p className="text-slate-500 mb-6 max-w-md">
+            Crea un nuevo evento para empezar a planificar, gestionar tareas, presupuesto y equipo.
+          </p>
+          <button 
+            onClick={createNewProject}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Crear Evento
+          </button>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return (
@@ -407,48 +518,105 @@ export default function App() {
         </div>
         
         {isSidebarOpen && (
-          <div className="p-4 border-b border-slate-100 relative">
-            <button 
-              onClick={() => setShowProjectMenu(!showProjectMenu)}
-              className="w-full flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors"
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="w-6 h-6 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 font-bold text-xs flex-shrink-0">
-                  {currentProject.name.charAt(0)}
+          <div className="p-4 border-b border-slate-100 relative space-y-3">
+            {/* Organization Selector */}
+            <div className="relative">
+              <div className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Organización</div>
+              <button 
+                onClick={() => { setShowOrgMenu(!showOrgMenu); setShowProjectMenu(false); }}
+                className="w-full flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors"
+              >
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                    {currentOrg.name.charAt(0)}
+                  </div>
+                  <span className="text-sm font-medium text-slate-700 truncate">{currentOrg.name}</span>
                 </div>
-                <span className="text-sm font-medium text-slate-700 truncate">{currentProject.name}</span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            </button>
-            
-            {showProjectMenu && (
-              <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
-                {projects.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => { setCurrentProjectId(p.id); setShowProjectMenu(false); }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 ${currentProjectId === p.id ? 'text-indigo-600 font-medium' : 'text-slate-700'}`}
-                  >
-                    <div className="w-5 h-5 bg-slate-100 rounded flex items-center justify-center text-slate-500 font-bold text-xs flex-shrink-0">
-                      {p.name.charAt(0)}
-                    </div>
-                    <span className="truncate">{p.name}</span>
-                  </button>
-                ))}
-                <div className="border-t border-slate-100 mt-1 pt-1">
-                  <button
-                    onClick={() => {
-                      createNewProject();
-                      setShowProjectMenu(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 font-medium"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Nuevo Proyecto
-                  </button>
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              </button>
+              
+              {showOrgMenu && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                  {organizations.map(o => (
+                    <button
+                      key={o.id}
+                      onClick={() => { 
+                        setCurrentOrgId(o.id); 
+                        const orgProjs = projects.filter(p => p.organizationId === o.id);
+                        if (orgProjs.length > 0) {
+                          setCurrentProjectId(orgProjs[0].id);
+                        }
+                        setShowOrgMenu(false); 
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 ${currentOrgId === o.id ? 'text-indigo-600 font-medium' : 'text-slate-700'}`}
+                    >
+                      <div className="w-5 h-5 bg-slate-800 rounded flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                        {o.name.charAt(0)}
+                      </div>
+                      <span className="truncate">{o.name}</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-slate-100 mt-1 pt-1">
+                    <button
+                      onClick={() => {
+                        createNewOrganization();
+                        setShowOrgMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 font-medium"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Nueva Organización
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Project Selector */}
+            <div className="relative">
+              <div className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Evento</div>
+              <button 
+                onClick={() => { setShowProjectMenu(!showProjectMenu); setShowOrgMenu(false); }}
+                className="w-full flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors"
+              >
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="w-6 h-6 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 font-bold text-xs flex-shrink-0">
+                    {currentProject?.name.charAt(0) || '-'}
+                  </div>
+                  <span className="text-sm font-medium text-slate-700 truncate">{currentProject?.name || 'Sin eventos'}</span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              </button>
+              
+              {showProjectMenu && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                  {orgProjects.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setCurrentProjectId(p.id); setShowProjectMenu(false); }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 ${currentProjectId === p.id ? 'text-indigo-600 font-medium' : 'text-slate-700'}`}
+                    >
+                      <div className="w-5 h-5 bg-slate-100 rounded flex items-center justify-center text-slate-500 font-bold text-xs flex-shrink-0">
+                        {p.name.charAt(0)}
+                      </div>
+                      <span className="truncate">{p.name}</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-slate-100 mt-1 pt-1">
+                    <button
+                      onClick={() => {
+                        createNewProject();
+                        setShowProjectMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 font-medium"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Nuevo Evento
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
         
@@ -510,7 +678,7 @@ export default function App() {
               >
                 <div className="text-right hidden md:block">
                   <div className="text-sm font-medium text-slate-900">{currentUser?.name.split(' ')[0]}</div>
-                  <div className="text-xs text-slate-500">{currentUser?.role}</div>
+                  <div className="text-xs text-slate-500">{currentUser?.email}</div>
                 </div>
                 <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
                   {currentUser?.name.charAt(0)}
@@ -542,11 +710,13 @@ export default function App() {
               <h1 className="text-2xl font-bold text-slate-900">
                 {activeTab === 'settings' ? 'Configuración' : NAV_ITEMS.find(i => i.id === activeTab)?.label}
               </h1>
-              <p className="text-slate-500 text-sm mt-1">
-                {eventConfig.eventName} — {new Date(eventConfig.eventDate).getFullYear()}
-              </p>
+              {eventConfig && (
+                <p className="text-slate-500 text-sm mt-1">
+                  {eventConfig.eventName} — {new Date(eventConfig.eventDate).getFullYear()}
+                </p>
+              )}
             </div>
-            {activeTab !== 'dashboard' && activeTab !== 'settings' && (
+            {activeTab !== 'dashboard' && activeTab !== 'settings' && currentProject && (
               <button 
                 onClick={() => {
                   // This button could trigger the "Add" action of the active view
