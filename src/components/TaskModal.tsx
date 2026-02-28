@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, User, Flag, AlignLeft, CheckSquare } from 'lucide-react';
+import { X, Calendar as CalendarIcon, User, Flag, AlignLeft, CheckSquare, Plus, Trash2 } from 'lucide-react';
 import { Task, TeamMember } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -189,6 +189,77 @@ export default function TaskModal({ task, teamMembers, onClose, onSave, onDelete
                 {editedTask.description || <span className="text-slate-400 italic">Sin descripción.</span>}
               </div>
             )}
+          </div>
+
+          {/* Subtasks */}
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <CheckSquare className="w-4 h-4" />
+              Subtareas
+            </label>
+            <div className="space-y-2">
+              {(editedTask.subtasks || []).map((subtask, index) => (
+                <div key={subtask.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={subtask.completed}
+                    onChange={(e) => {
+                      const newSubtasks = [...(editedTask.subtasks || [])];
+                      newSubtasks[index].completed = e.target.checked;
+                      setEditedTask({ ...editedTask, subtasks: newSubtasks });
+                      if (!isEditing) {
+                        onSave({ ...editedTask, subtasks: newSubtasks });
+                      }
+                    }}
+                    disabled={!canEdit && !isEditing}
+                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={subtask.title}
+                      onChange={(e) => {
+                        const newSubtasks = [...(editedTask.subtasks || [])];
+                        newSubtasks[index].title = e.target.value;
+                        setEditedTask({ ...editedTask, subtasks: newSubtasks });
+                      }}
+                      className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:border-indigo-500"
+                      placeholder="Descripción de la subtarea"
+                    />
+                  ) : (
+                    <span className={`text-sm flex-1 ${subtask.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                      {subtask.title || <span className="italic text-slate-400">Sin título</span>}
+                    </span>
+                  )}
+                  {isEditing && (
+                    <button
+                      onClick={() => {
+                        const newSubtasks = (editedTask.subtasks || []).filter((_, i) => i !== index);
+                        setEditedTask({ ...editedTask, subtasks: newSubtasks });
+                      }}
+                      className="p-1 text-slate-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    const newSubtasks = [...(editedTask.subtasks || []), { id: Date.now(), title: '', completed: false }];
+                    setEditedTask({ ...editedTask, subtasks: newSubtasks });
+                  }}
+                  className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium mt-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Añadir subtarea
+                </button>
+              )}
+              {(!editedTask.subtasks || editedTask.subtasks.length === 0) && !isEditing && (
+                <div className="text-sm text-slate-400 italic">No hay subtareas.</div>
+              )}
+            </div>
           </div>
         </div>
 

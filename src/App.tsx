@@ -17,10 +17,11 @@ import {
   Search,
   Plus,
   CalendarDays,
-  Settings
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { NAV_ITEMS, INITIAL_TASKS, BUDGET_ITEMS, SPEAKERS, SPONSORS } from './constants';
-import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig, TeamMember } from './types';
+import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig, TeamMember, Project } from './types';
 import { useAuth, MOCK_USERS } from './context/AuthContext';
 import { motion } from 'motion/react';
 import Calendar from './components/Calendar';
@@ -97,56 +98,154 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
 
   // Application State
-  const [eventConfig, setEventConfig] = useState<EventConfig>({
-    eventName: 'Cumbre Tributaria Ecuador',
-    eventDate: '2026-06-15',
-    targetAttendees: 2000,
-    sponsorsTarget: 15,
-    totalBudget: 120000,
-    universityTarget: 5,
-    studentTarget: 1500,
-    sponsorTargets: {
-      Diamante: 2,
-      Oro: 5,
-      Plata: 8,
-      Bronce: 10
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      id: '1',
+      name: 'Cumbre Tributaria Ecuador',
+      config: {
+        eventName: 'Cumbre Tributaria Ecuador',
+        eventDate: '2026-06-15',
+        targetAttendees: 2000,
+        sponsorsTarget: 15,
+        totalBudget: 120000,
+        universityTarget: 5,
+        studentTarget: 1500,
+        sponsorTargets: {
+          Diamante: 2,
+          Oro: 5,
+          Plata: 8,
+          Bronce: 10
+        }
+      },
+      tasks: INITIAL_TASKS as Task[],
+      budgetItems: BUDGET_ITEMS,
+      speakers: SPEAKERS as Speaker[],
+      sponsors: SPONSORS as Sponsor[],
+      universities: [
+        { id: 1, name: 'ESPOL', status: 'signed', students: 150, contact: 'Decano Facultad Economía', email: 'decano@espol.edu.ec', phone: '0991234567' },
+        { id: 2, name: 'Universidad de Guayaquil', status: 'negotiation', students: 300, contact: 'Director Carrera CPA', email: 'cpa@ug.edu.ec', phone: '0987654321' },
+        { id: 3, name: 'UEES', status: 'contacted', students: 0, contact: 'Coordinador Vinculación', email: 'vinculacion@uees.edu.ec', phone: '0976543210' },
+        { id: 4, name: 'Universidad Católica', status: 'signed', students: 120, contact: 'Jefe de Carrera', email: 'carrera@ucsg.edu.ec', phone: '0965432109' },
+        { id: 5, name: 'UTEG', status: 'pending', students: 0, contact: 'Pendiente', email: '', phone: '' },
+      ],
+      campaigns: [
+        { id: 1, phase: 'Fase 1: Expectativa', dates: 'Feb - Mar', status: 'active', channels: ['Instagram', 'Email', 'PR'], progress: 45 },
+        { id: 2, phase: 'Fase 2: Conversión', dates: 'Abr - May', status: 'pending', channels: ['Ads', 'Webinars', 'Visitas'], progress: 0 },
+        { id: 3, phase: 'Fase 3: Último Impulso', dates: 'Junio', status: 'pending', channels: ['SMS', 'Remarketing'], progress: 0 },
+      ],
+      marketingMetrics: [
+        { id: 1, name: 'Alcance en Redes', value: 0, target: 50000, unit: 'number', platform: 'instagram', lastUpdated: new Date().toISOString().split('T')[0] },
+        { id: 2, name: 'Leads Landing Page', value: 0, target: 2000, unit: 'number', platform: 'website', lastUpdated: new Date().toISOString().split('T')[0] },
+        { id: 3, name: 'Tasa de Apertura Email', value: 0, target: 25, unit: 'percent', platform: 'email', lastUpdated: new Date().toISOString().split('T')[0] },
+      ],
+      teamMembers: [
+        { id: 1, name: 'Jorge Ron', role: 'Director General', email: 'jorge@eventer.com', phone: '0990000001', description: 'Supervisa todo, toma decisiones finales, relaciones institucionales de alto nivel.' },
+        { id: 2, name: 'María Pérez', role: 'Coord. Logística', email: 'maria@eventer.com', phone: '0990000002', description: 'Gestión del venue, proveedores, montaje, transporte, catering, equipo AV.' },
+        { id: 3, name: 'Carlos López', role: 'Dir. Marketing', email: 'carlos@eventer.com', phone: '0990000003', description: 'Estrategia digital/offline, campañas, PR y medios.' },
+        { id: 4, name: 'Ana Silva', role: 'Coord. Ponentes', email: 'ana@eventer.com', phone: '0990000004', description: 'Contacto speakers, diseño de agenda, materiales.' },
+        { id: 5, name: 'Luis Torres', role: 'Coord. Comercial', email: 'luis@eventer.com', phone: '0990000005', description: 'Venta de paquetes de patrocinio, relación con auspiciantes.' },
+        { id: 6, name: 'Elena Gómez', role: 'Coord. Alianzas', email: 'elena@eventer.com', phone: '0990000006', description: 'Relación con universidades, colegios profesionales y gremios.' },
+        { id: 7, name: 'Pedro Ruiz', role: 'Coord. Experiencia', email: 'pedro@eventer.com', phone: '0990000007', description: 'Registro, acreditación, kit de bienvenida, atención al público.' },
+        { id: 8, name: 'Sofía Castro', role: 'Coord. Tecnología', email: 'sofia@eventer.com', phone: '0990000008', description: 'Plataforma de ticketing, app, streaming, Wi-Fi.' },
+        { id: 9, name: 'Diego Vega', role: 'Coord. Legal', email: 'diego@eventer.com', phone: '0990000009', description: 'Permisos municipales, plan de contingencia, seguros.' },
+      ]
     }
-  });
+  ]);
+  const [currentProjectId, setCurrentProjectId] = useState<string>('1');
 
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS as Task[]);
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(BUDGET_ITEMS);
-  const [speakers, setSpeakers] = useState<Speaker[]>(SPEAKERS as Speaker[]);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(SPONSORS as Sponsor[]);
-  const [universities, setUniversities] = useState<University[]>([
-    { id: 1, name: 'ESPOL', status: 'signed', students: 150, contact: 'Decano Facultad Economía', email: 'decano@espol.edu.ec', phone: '0991234567' },
-    { id: 2, name: 'Universidad de Guayaquil', status: 'negotiation', students: 300, contact: 'Director Carrera CPA', email: 'cpa@ug.edu.ec', phone: '0987654321' },
-    { id: 3, name: 'UEES', status: 'contacted', students: 0, contact: 'Coordinador Vinculación', email: 'vinculacion@uees.edu.ec', phone: '0976543210' },
-    { id: 4, name: 'Universidad Católica', status: 'signed', students: 120, contact: 'Jefe de Carrera', email: 'carrera@ucsg.edu.ec', phone: '0965432109' },
-    { id: 5, name: 'UTEG', status: 'pending', students: 0, contact: 'Pendiente', email: '', phone: '' },
-  ]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
-    { id: 1, phase: 'Fase 1: Expectativa', dates: 'Feb - Mar', status: 'active', channels: ['Instagram', 'Email', 'PR'], progress: 45 },
-    { id: 2, phase: 'Fase 2: Conversión', dates: 'Abr - May', status: 'pending', channels: ['Ads', 'Webinars', 'Visitas'], progress: 0 },
-    { id: 3, phase: 'Fase 3: Último Impulso', dates: 'Junio', status: 'pending', channels: ['SMS', 'Remarketing'], progress: 0 },
-  ]);
-  const [marketingMetrics, setMarketingMetrics] = useState<MarketingMetric[]>([
-    { id: 1, name: 'Alcance en Redes', value: 0, target: 50000, unit: 'number', platform: 'instagram', lastUpdated: new Date().toISOString().split('T')[0] },
-    { id: 2, name: 'Leads Landing Page', value: 0, target: 2000, unit: 'number', platform: 'website', lastUpdated: new Date().toISOString().split('T')[0] },
-    { id: 3, name: 'Tasa de Apertura Email', value: 0, target: 25, unit: 'percent', platform: 'email', lastUpdated: new Date().toISOString().split('T')[0] },
-  ]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    { id: 1, name: 'Jorge Ron', role: 'Director General', email: 'jorge@cumbretrib.com', phone: '0990000001', description: 'Supervisa todo, toma decisiones finales, relaciones institucionales de alto nivel.' },
-    { id: 2, name: 'María Pérez', role: 'Coord. Logística', email: 'maria@cumbretrib.com', phone: '0990000002', description: 'Gestión del venue, proveedores, montaje, transporte, catering, equipo AV.' },
-    { id: 3, name: 'Carlos López', role: 'Dir. Marketing', email: 'carlos@cumbretrib.com', phone: '0990000003', description: 'Estrategia digital/offline, campañas, PR y medios.' },
-    { id: 4, name: 'Ana Silva', role: 'Coord. Ponentes', email: 'ana@cumbretrib.com', phone: '0990000004', description: 'Contacto speakers, diseño de agenda, materiales.' },
-    { id: 5, name: 'Luis Torres', role: 'Coord. Comercial', email: 'luis@cumbretrib.com', phone: '0990000005', description: 'Venta de paquetes de patrocinio, relación con auspiciantes.' },
-    { id: 6, name: 'Elena Gómez', role: 'Coord. Alianzas', email: 'elena@cumbretrib.com', phone: '0990000006', description: 'Relación con universidades, colegios profesionales y gremios.' },
-    { id: 7, name: 'Pedro Ruiz', role: 'Coord. Experiencia', email: 'pedro@cumbretrib.com', phone: '0990000007', description: 'Registro, acreditación, kit de bienvenida, atención al público.' },
-    { id: 8, name: 'Sofía Castro', role: 'Coord. Tecnología', email: 'sofia@cumbretrib.com', phone: '0990000008', description: 'Plataforma de ticketing, app, streaming, Wi-Fi.' },
-    { id: 9, name: 'Diego Vega', role: 'Coord. Legal', email: 'diego@cumbretrib.com', phone: '0990000009', description: 'Permisos municipales, plan de contingencia, seguros.' },
-  ]);
+  const currentProject = projects.find(p => p.id === currentProjectId) || projects[0];
+
+  const updateCurrentProject = (updates: Partial<Project>) => {
+    setProjects(projects.map(p => p.id === currentProjectId ? { ...p, ...updates } : p));
+  };
+
+  const createNewProject = () => {
+    const newId = Date.now().toString();
+    const newProject: Project = {
+      id: newId,
+      name: 'Nuevo Proyecto',
+      config: {
+        eventName: 'Nuevo Proyecto',
+        eventDate: new Date().toISOString().split('T')[0],
+        targetAttendees: 0,
+        sponsorsTarget: 0,
+        totalBudget: 0,
+        universityTarget: 0,
+        studentTarget: 0,
+        sponsorTargets: { Diamante: 0, Oro: 0, Plata: 0, Bronce: 0 }
+      },
+      tasks: [],
+      budgetItems: [],
+      speakers: [],
+      sponsors: [],
+      universities: [],
+      campaigns: [],
+      marketingMetrics: [],
+      teamMembers: []
+    };
+    setProjects([...projects, newProject]);
+    setCurrentProjectId(newId);
+  };
+
+  const deleteCurrentProject = () => {
+    if (projects.length <= 1) return;
+    const newProjects = projects.filter(p => p.id !== currentProjectId);
+    setProjects(newProjects);
+    setCurrentProjectId(newProjects[0].id);
+    setActiveTab('dashboard');
+  };
+
+  // State accessors for current project
+  const eventConfig = currentProject.config;
+  const setEventConfig = (config: EventConfig | ((prev: EventConfig) => EventConfig)) => {
+    updateCurrentProject({ config: typeof config === 'function' ? config(currentProject.config) : config });
+    if (typeof config !== 'function' || (config as any).eventName) {
+      updateCurrentProject({ name: typeof config === 'function' ? config(currentProject.config).eventName : config.eventName });
+    }
+  };
+
+  const tasks = currentProject.tasks;
+  const setTasks = (tasks: Task[] | ((prev: Task[]) => Task[])) => {
+    updateCurrentProject({ tasks: typeof tasks === 'function' ? tasks(currentProject.tasks) : tasks });
+  };
+
+  const budgetItems = currentProject.budgetItems;
+  const setBudgetItems = (budgetItems: BudgetItem[] | ((prev: BudgetItem[]) => BudgetItem[])) => {
+    updateCurrentProject({ budgetItems: typeof budgetItems === 'function' ? budgetItems(currentProject.budgetItems) : budgetItems });
+  };
+
+  const speakers = currentProject.speakers;
+  const setSpeakers = (speakers: Speaker[] | ((prev: Speaker[]) => Speaker[])) => {
+    updateCurrentProject({ speakers: typeof speakers === 'function' ? speakers(currentProject.speakers) : speakers });
+  };
+
+  const sponsors = currentProject.sponsors;
+  const setSponsors = (sponsors: Sponsor[] | ((prev: Sponsor[]) => Sponsor[])) => {
+    updateCurrentProject({ sponsors: typeof sponsors === 'function' ? sponsors(currentProject.sponsors) : sponsors });
+  };
+
+  const universities = currentProject.universities;
+  const setUniversities = (universities: University[] | ((prev: University[]) => University[])) => {
+    updateCurrentProject({ universities: typeof universities === 'function' ? universities(currentProject.universities) : universities });
+  };
+
+  const campaigns = currentProject.campaigns;
+  const setCampaigns = (campaigns: Campaign[] | ((prev: Campaign[]) => Campaign[])) => {
+    updateCurrentProject({ campaigns: typeof campaigns === 'function' ? campaigns(currentProject.campaigns) : campaigns });
+  };
+
+  const marketingMetrics = currentProject.marketingMetrics;
+  const setMarketingMetrics = (marketingMetrics: MarketingMetric[] | ((prev: MarketingMetric[]) => MarketingMetric[])) => {
+    updateCurrentProject({ marketingMetrics: typeof marketingMetrics === 'function' ? marketingMetrics(currentProject.marketingMetrics) : marketingMetrics });
+  };
+
+  const teamMembers = currentProject.teamMembers;
+  const setTeamMembers = (teamMembers: TeamMember[] | ((prev: TeamMember[]) => TeamMember[])) => {
+    updateCurrentProject({ teamMembers: typeof teamMembers === 'function' ? teamMembers(currentProject.teamMembers) : teamMembers });
+  };
 
   // Derived Stats
   const budgetSpent = budgetItems.reduce((acc, item) => acc + item.spent, 0);
@@ -281,7 +380,13 @@ export default function App() {
       case 'marketing':
         return <MarketingView campaigns={campaigns} setCampaigns={setCampaigns} metrics={marketingMetrics} setMetrics={setMarketingMetrics} />;
       case 'settings':
-        return <SettingsView config={eventConfig} setConfig={setEventConfig} />;
+        return <SettingsView 
+          config={eventConfig} 
+          setConfig={setEventConfig} 
+          project={currentProject}
+          updateProject={updateCurrentProject}
+          onDeleteProject={projects.length > 1 ? deleteCurrentProject : undefined} 
+        />;
       default:
         return <div className="p-12 text-center text-slate-500">Módulo en construcción</div>;
     }
@@ -295,11 +400,57 @@ export default function App() {
       >
         <div className="h-16 flex items-center justify-center border-b border-slate-100">
           {isSidebarOpen ? (
-            <div className="font-bold text-xl text-indigo-900 tracking-tight">Cumbre<span className="text-indigo-600">Trib</span></div>
+            <div className="font-bold text-xl text-indigo-900 tracking-tight">Eventer</div>
           ) : (
-            <div className="font-bold text-xl text-indigo-600">CT</div>
+            <div className="font-bold text-xl text-indigo-600">EV</div>
           )}
         </div>
+        
+        {isSidebarOpen && (
+          <div className="p-4 border-b border-slate-100 relative">
+            <button 
+              onClick={() => setShowProjectMenu(!showProjectMenu)}
+              className="w-full flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors"
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-6 h-6 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 font-bold text-xs flex-shrink-0">
+                  {currentProject.name.charAt(0)}
+                </div>
+                <span className="text-sm font-medium text-slate-700 truncate">{currentProject.name}</span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            </button>
+            
+            {showProjectMenu && (
+              <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
+                {projects.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setCurrentProjectId(p.id); setShowProjectMenu(false); }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 ${currentProjectId === p.id ? 'text-indigo-600 font-medium' : 'text-slate-700'}`}
+                  >
+                    <div className="w-5 h-5 bg-slate-100 rounded flex items-center justify-center text-slate-500 font-bold text-xs flex-shrink-0">
+                      {p.name.charAt(0)}
+                    </div>
+                    <span className="truncate">{p.name}</span>
+                  </button>
+                ))}
+                <div className="border-t border-slate-100 mt-1 pt-1">
+                  <button
+                    onClick={() => {
+                      createNewProject();
+                      setShowProjectMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Nuevo Proyecto
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         
         <nav className="p-4 space-y-2 flex flex-col h-[calc(100%-4rem)]">
           {NAV_ITEMS.map((item) => (

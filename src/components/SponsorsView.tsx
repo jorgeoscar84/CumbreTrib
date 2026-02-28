@@ -308,9 +308,9 @@ export default function SponsorsView({ sponsors, setSponsors, config, setConfig 
                         </span>
                       </td>
                       {canEditSponsors && (
-                        <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity align-top pt-4 whitespace-nowrap">
-                          <button onClick={() => startEdit(sponsor)} className="text-slate-400 hover:text-indigo-600 p-1"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => handleDelete(sponsor.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
+                        <td className="px-6 py-4 text-right align-top pt-4 whitespace-nowrap">
+                          <button onClick={() => startEdit(sponsor)} className="text-slate-400 hover:text-indigo-600 p-1" title="Editar auspiciante"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(sponsor.id)} className="text-slate-400 hover:text-red-600 p-1" title="Eliminar auspiciante"><Trash2 className="w-4 h-4" /></button>
                         </td>
                       )}
                     </>

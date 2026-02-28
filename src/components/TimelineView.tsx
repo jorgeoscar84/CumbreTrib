@@ -237,7 +237,7 @@ export default function TimelineView({ tasks, setTasks, teamMembers = [] }: Time
                         )}
                       </div>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2">
+                    <div className="transition-opacity absolute top-2 right-2">
                       <button onClick={() => startEdit(task)} className="p-1 hover:text-indigo-600">
                         <Edit2 className="w-4 h-4 text-slate-400 hover:text-indigo-600" />
                       </button>

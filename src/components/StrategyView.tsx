@@ -80,7 +80,7 @@ export default function StrategyView() {
                 <span className="text-slate-700 text-sm leading-relaxed flex-1">{obj.text}</span>
                 <button 
                   onClick={() => setObjectives(objectives.filter(o => o.id !== obj.id))}
-                  className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="text-slate-300 hover:text-red-500 transition-opacity"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

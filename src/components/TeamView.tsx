@@ -156,7 +156,7 @@ export default function TeamView({ teamMembers, setTeamMembers }: TeamViewProps)
 
               <button 
                 onClick={() => handleDeleteRole(member.id)}
-                className="absolute top-4 right-4 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1"
+                className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-opacity bg-white rounded-full p-1"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

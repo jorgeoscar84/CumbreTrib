@@ -38,6 +38,12 @@ export interface TeamMember {
   description: string;
 }
 
+export interface Subtask {
+  id: number;
+  title: string;
+  completed: boolean;
+}
+
 export interface Task {
   id: number;
   category: string;
@@ -47,6 +53,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high' | 'critical';
   date?: string; // YYYY-MM-DD
   assigneeId?: number; // References TeamMember.id
+  subtasks?: Subtask[];
 }
 
 export interface BudgetItem {
@@ -125,4 +132,18 @@ export interface MarketingMetric {
   unit: 'number' | 'percent' | 'currency';
   platform: 'instagram' | 'facebook' | 'linkedin' | 'email' | 'website' | 'other';
   lastUpdated: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  config: EventConfig;
+  tasks: Task[];
+  budgetItems: BudgetItem[];
+  speakers: Speaker[];
+  sponsors: Sponsor[];
+  universities: University[];
+  campaigns: Campaign[];
+  marketingMetrics: MarketingMetric[];
+  teamMembers: TeamMember[];
 }

@@ -451,7 +451,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
                         </div>
                       </div>
                       {canEditMarketing && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 transition-opacity">
                           <button onClick={() => startEditMetric(metric)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
                           <button onClick={() => deleteMetric(metric.id)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                         </div>

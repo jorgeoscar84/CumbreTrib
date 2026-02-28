@@ -62,10 +62,10 @@ export default function SpeakersView({ speakers, setSpeakers }: SpeakersViewProp
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {speakers.map(speaker => (
           <div key={speaker.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col relative group">
-            {canEditSpeakers && (
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
-                <button onClick={() => startEdit(speaker)} className="p-1 bg-white rounded-full shadow hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => handleDelete(speaker.id)} className="p-1 bg-white rounded-full shadow hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+            {canEditSpeakers && editingId !== speaker.id && (
+              <div className="absolute top-4 right-4 flex gap-2 z-10">
+                <button onClick={() => startEdit(speaker)} className="p-1.5 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-slate-200 hover:bg-white hover:text-indigo-600 transition-colors" title="Editar ponente"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => handleDelete(speaker.id)} className="p-1.5 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-slate-200 hover:bg-white hover:text-red-600 transition-colors" title="Eliminar ponente"><Trash2 className="w-4 h-4" /></button>
               </div>
             )}
             
@@ -107,6 +107,12 @@ export default function SpeakersView({ speakers, setSpeakers }: SpeakersViewProp
                   onChange={e => setTempSpeaker({...tempSpeaker, bio: e.target.value})}
                   className="w-full text-sm border rounded px-2 py-1 h-20 resize-none"
                   placeholder="Biografía breve"
+                />
+                <input 
+                  value={tempSpeaker.image || ''} 
+                  onChange={e => setTempSpeaker({...tempSpeaker, image: e.target.value})}
+                  className="w-full text-sm border rounded px-2 py-1"
+                  placeholder="URL de la imagen"
                 />
                 <div className="flex gap-2 justify-center">
                   <select 
@@ -220,6 +226,12 @@ export default function SpeakersView({ speakers, setSpeakers }: SpeakersViewProp
               onChange={e => setTempSpeaker({...tempSpeaker, bio: e.target.value})}
               className="w-full border rounded px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Biografía breve"
+            />
+            <input 
+              value={tempSpeaker.image || ''} 
+              onChange={e => setTempSpeaker({...tempSpeaker, image: e.target.value})}
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="URL de la imagen (opcional)"
             />
             <div className="flex gap-2">
               <select 

@@ -108,7 +108,7 @@ export default function Calendar({ tasks, setTasks }: CalendarProps) {
               handleDateClick(i);
               setIsAddingTask(true);
             }}
-            className="absolute bottom-1 right-1 p-1 rounded-full bg-indigo-600 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-700"
+            className="absolute bottom-1 right-1 p-1 rounded-full bg-indigo-600 text-white transition-opacity hover:bg-indigo-700"
           >
             <Plus className="w-3 h-3" />
           </button>

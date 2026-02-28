@@ -187,7 +187,7 @@ export default function BudgetView({ items, setItems }: BudgetViewProps) {
                       <td className="px-6 py-4 text-sm text-indigo-600 font-medium">${item.spent.toLocaleString()}</td>
                       <td className="px-6 py-4 text-sm text-slate-400">{item.notes}</td>
                       {canManageFinances && (
-                        <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                        <td className="px-6 py-4 text-right transition-opacity">
                           <button onClick={() => startEdit(idx, item)} className="text-slate-400 hover:text-indigo-600 p-1"><Edit2 className="w-4 h-4" /></button>
                           <button onClick={() => handleDelete(idx)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
                         </td>

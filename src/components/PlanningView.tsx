@@ -54,7 +54,8 @@ export default function PlanningView({ tasks, setTasks, teamMembers = [] }: Plan
         status: tempTask.status as Task['status'] || 'pending',
         priority: tempTask.priority as Task['priority'] || 'medium',
         date: tempTask.date,
-        assigneeId: tempTask.assigneeId
+        assigneeId: tempTask.assigneeId,
+        subtasks: []
       };
       setTasks([...tasks, newTask]);
       setIsAdding(false);
@@ -221,7 +222,28 @@ export default function PlanningView({ tasks, setTasks, teamMembers = [] }: Plan
                 className="hover:bg-slate-50 group cursor-pointer transition-colors"
                 onClick={() => setSelectedTask(task)}
               >
-                <td className="px-6 py-4 text-sm font-medium text-slate-900">{task.title}</td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-slate-900">{task.title}</div>
+                  {task.subtasks && task.subtasks.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          {task.subtasks.filter(st => st.completed).length} de {task.subtasks.length} subtareas
+                        </span>
+                        <span>
+                          {Math.round((task.subtasks.filter(st => st.completed).length / task.subtasks.length) * 100)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5">
+                        <div 
+                          className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${(task.subtasks.filter(st => st.completed).length / task.subtasks.length) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </td>
                 <td className="px-6 py-4">
                   {task.assigneeId ? (
                     <span className="flex items-center gap-1 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full w-fit">

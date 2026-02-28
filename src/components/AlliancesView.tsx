@@ -99,7 +99,7 @@ export default function AlliancesView({ universities, setUniversities, config, s
               {canEditAlliances && (
                 <button 
                   onClick={() => { setTempTarget(config.studentTarget); setIsEditingTarget(true); }}
-                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-indigo-600 transition-opacity"
+                  className="text-slate-400 hover:text-indigo-600 transition-opacity"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -332,7 +332,7 @@ export default function AlliancesView({ universities, setUniversities, config, s
                         </span>
                       </td>
                       {canEditAlliances && (
-                        <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity align-top pt-4 whitespace-nowrap">
+                        <td className="px-6 py-4 text-right align-top pt-4 whitespace-nowrap">
                           <button onClick={() => startEdit(uni)} className="text-slate-400 hover:text-indigo-600 p-1"><Edit2 className="w-4 h-4" /></button>
                           <button onClick={() => handleDelete(uni.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
                         </td>
