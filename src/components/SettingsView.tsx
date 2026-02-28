@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Save, Calendar, Users, DollarSign, Briefcase, GraduationCap } from 'lucide-react';
+import { Save, Calendar, Users, DollarSign, Briefcase, GraduationCap, Lock } from 'lucide-react';
 import { EventConfig } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface SettingsViewProps {
   config: EventConfig;
@@ -8,14 +9,30 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({ config, setConfig }: SettingsViewProps) {
+  const { hasPermission } = useAuth();
+  const canManageConfig = hasPermission('manage:config');
+
   const [tempConfig, setTempConfig] = useState<EventConfig>({ ...config });
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = () => {
+    if (!canManageConfig) return;
     setConfig(tempConfig);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
+
+  if (!canManageConfig) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 text-center">
+        <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-8 h-8 text-slate-400" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Acceso Restringido</h2>
+        <p className="text-slate-500">No tienes permisos para modificar la configuración del evento.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">

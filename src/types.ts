@@ -1,3 +1,24 @@
+export type Role = 'SUPERADMIN' | 'ADMIN' | 'COLLABORATOR';
+
+export type Permission = 
+  | 'manage:users' // Superadmin only
+  | 'manage:finances' // Superadmin, Admin
+  | 'manage:config' // Superadmin, Admin
+  | 'edit:planning' // All
+  | 'delete:task' // Superadmin, Admin
+  | 'edit:speakers' // All
+  | 'edit:sponsors' // Superadmin, Admin
+  | 'edit:alliances' // All
+  | 'edit:marketing'; // All
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
+}
+
 export interface AgendaItem {
   id: number;
   day: 1 | 2;
@@ -8,13 +29,24 @@ export interface AgendaItem {
   location?: string;
 }
 
+export interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  description: string;
+}
+
 export interface Task {
   id: number;
   category: string;
   title: string;
+  description?: string;
   status: 'pending' | 'in-progress' | 'done';
   priority: 'low' | 'medium' | 'high' | 'critical';
   date?: string; // YYYY-MM-DD
+  assigneeId?: number; // References TeamMember.id
 }
 
 export interface BudgetItem {
@@ -32,6 +64,9 @@ export interface Speaker {
   status: 'pending' | 'contacted' | 'confirmed' | 'declined';
   type: 'national' | 'international';
   image?: string;
+  email?: string;
+  phone?: string;
+  bio?: string;
 }
 
 export interface Sponsor {
@@ -40,6 +75,10 @@ export interface Sponsor {
   level: 'Diamante' | 'Oro' | 'Plata' | 'Bronce';
   amount: number;
   status: 'prospect' | 'contacted' | 'negotiation' | 'confirmed' | 'paid';
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
 }
 
 export interface University {
@@ -48,6 +87,9 @@ export interface University {
   status: 'pending' | 'contacted' | 'negotiation' | 'signed';
   students: number;
   contact: string;
+  email?: string;
+  phone?: string;
+  agreementDetails?: string;
 }
 
 export interface Campaign {

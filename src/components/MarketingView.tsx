@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Megaphone, Users, Briefcase, Edit2, Check, X, Plus, Trash2, TrendingUp, Target, Globe, Mail, Instagram, Facebook, Linkedin } from 'lucide-react';
 import { Campaign, MarketingMetric } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface MarketingViewProps {
   campaigns: Campaign[];
@@ -10,6 +11,9 @@ interface MarketingViewProps {
 }
 
 export default function MarketingView({ campaigns, setCampaigns, metrics, setMetrics }: MarketingViewProps) {
+  const { hasPermission } = useAuth();
+  const canEditMarketing = hasPermission('edit:marketing');
+
   // Campaign State
   const [isAddingCampaign, setIsAddingCampaign] = useState(false);
   const [editingCampaignId, setEditingCampaignId] = useState<number | null>(null);
@@ -22,6 +26,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
 
   // --- Campaign Handlers ---
   const startAddCampaign = () => {
+    if (!canEditMarketing) return;
     setIsAddingCampaign(true);
     setTempCampaign({
       phase: '',
@@ -49,6 +54,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
   };
 
   const startEditCampaign = (campaign: Campaign) => {
+    if (!canEditMarketing) return;
     setEditingCampaignId(campaign.id);
     setTempCampaign({ ...campaign });
   };
@@ -72,6 +78,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
 
   // --- Metric Handlers ---
   const startAddMetric = () => {
+    if (!canEditMarketing) return;
     setIsAddingMetric(true);
     setTempMetric({
       name: '',
@@ -101,6 +108,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
   };
 
   const startEditMetric = (metric: MarketingMetric) => {
+    if (!canEditMarketing) return;
     setEditingMetricId(metric.id);
     setTempMetric({ ...metric });
   };
@@ -114,6 +122,7 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
   };
 
   const deleteMetric = (id: number) => {
+    if (!canEditMarketing) return;
     if (confirm('¿Eliminar esta métrica?')) {
       setMetrics(metrics.filter(m => m.id !== id));
     }
@@ -138,13 +147,15 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-bold text-slate-900">Campañas Activas</h2>
-          <button 
-            onClick={startAddCampaign}
-            className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100 flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            Nueva Campaña
-          </button>
+          {canEditMarketing && (
+            <button 
+              onClick={startAddCampaign}
+              className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100 flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva Campaña
+            </button>
+          )}
         </div>
         
         {isAddingCampaign && (
@@ -276,7 +287,9 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
                         'bg-slate-200 text-slate-600'}`}>
                       {camp.status.toUpperCase()}
                     </span>
-                    <button onClick={() => startEditCampaign(camp)} className="text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
+                    {canEditMarketing && (
+                      <button onClick={() => startEditCampaign(camp)} className="text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
+                    )}
                   </div>
                 </div>
                 
@@ -313,13 +326,15 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-slate-900">KPIs y Métricas</h3>
-            <button 
-              onClick={startAddMetric}
-              className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100 flex items-center gap-1"
-            >
-              <Plus className="w-4 h-4" />
-              Agregar KPI
-            </button>
+            {canEditMarketing && (
+              <button 
+                onClick={startAddMetric}
+                className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100 flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar KPI
+              </button>
+            )}
           </div>
 
           {isAddingMetric && (
@@ -435,10 +450,12 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
                           <div className="text-xs text-slate-500">Act: {metric.lastUpdated}</div>
                         </div>
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEditMetric(metric)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => deleteMetric(metric.id)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                      </div>
+                      {canEditMarketing && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => startEditMetric(metric)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => deleteMetric(metric.id)} className="p-1 hover:bg-white rounded text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-end justify-between mb-2">
@@ -471,9 +488,11 @@ export default function MarketingView({ campaigns, setCampaigns, metrics, setMet
               <div className="text-center py-8 text-slate-400 border-2 border-dashed border-slate-100 rounded-xl">
                 <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No hay métricas configuradas</p>
-                <button onClick={startAddMetric} className="text-indigo-600 text-sm font-medium mt-2 hover:underline">
-                  Agregar mi primer KPI
-                </button>
+                {canEditMarketing && (
+                  <button onClick={startAddMetric} className="text-indigo-600 text-sm font-medium mt-2 hover:underline">
+                    Agregar mi primer KPI
+                  </button>
+                )}
               </div>
             )}
           </div>

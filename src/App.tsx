@@ -20,7 +20,8 @@ import {
   Settings
 } from 'lucide-react';
 import { NAV_ITEMS, INITIAL_TASKS, BUDGET_ITEMS, SPEAKERS, SPONSORS } from './constants';
-import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig } from './types';
+import { Task, BudgetItem, Speaker, Sponsor, University, Campaign, MarketingMetric, EventConfig, TeamMember } from './types';
+import { useAuth, MOCK_USERS } from './context/AuthContext';
 import { motion } from 'motion/react';
 import Calendar from './components/Calendar';
 import PlanningView from './components/PlanningView';
@@ -92,8 +93,10 @@ const TaskRow: React.FC<{ task: Task; onToggleStatus: (id: number) => void }> = 
 };
 
 export default function App() {
+  const { currentUser, login, hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Application State
   const [eventConfig, setEventConfig] = useState<EventConfig>({
@@ -117,11 +120,11 @@ export default function App() {
   const [speakers, setSpeakers] = useState<Speaker[]>(SPEAKERS as Speaker[]);
   const [sponsors, setSponsors] = useState<Sponsor[]>(SPONSORS as Sponsor[]);
   const [universities, setUniversities] = useState<University[]>([
-    { id: 1, name: 'ESPOL', status: 'signed', students: 150, contact: 'Decano Facultad Economía' },
-    { id: 2, name: 'Universidad de Guayaquil', status: 'negotiation', students: 300, contact: 'Director Carrera CPA' },
-    { id: 3, name: 'UEES', status: 'contacted', students: 0, contact: 'Coordinador Vinculación' },
-    { id: 4, name: 'Universidad Católica', status: 'signed', students: 120, contact: 'Jefe de Carrera' },
-    { id: 5, name: 'UTEG', status: 'pending', students: 0, contact: 'Pendiente' },
+    { id: 1, name: 'ESPOL', status: 'signed', students: 150, contact: 'Decano Facultad Economía', email: 'decano@espol.edu.ec', phone: '0991234567' },
+    { id: 2, name: 'Universidad de Guayaquil', status: 'negotiation', students: 300, contact: 'Director Carrera CPA', email: 'cpa@ug.edu.ec', phone: '0987654321' },
+    { id: 3, name: 'UEES', status: 'contacted', students: 0, contact: 'Coordinador Vinculación', email: 'vinculacion@uees.edu.ec', phone: '0976543210' },
+    { id: 4, name: 'Universidad Católica', status: 'signed', students: 120, contact: 'Jefe de Carrera', email: 'carrera@ucsg.edu.ec', phone: '0965432109' },
+    { id: 5, name: 'UTEG', status: 'pending', students: 0, contact: 'Pendiente', email: '', phone: '' },
   ]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([
     { id: 1, phase: 'Fase 1: Expectativa', dates: 'Feb - Mar', status: 'active', channels: ['Instagram', 'Email', 'PR'], progress: 45 },
@@ -132,6 +135,17 @@ export default function App() {
     { id: 1, name: 'Alcance en Redes', value: 0, target: 50000, unit: 'number', platform: 'instagram', lastUpdated: new Date().toISOString().split('T')[0] },
     { id: 2, name: 'Leads Landing Page', value: 0, target: 2000, unit: 'number', platform: 'website', lastUpdated: new Date().toISOString().split('T')[0] },
     { id: 3, name: 'Tasa de Apertura Email', value: 0, target: 25, unit: 'percent', platform: 'email', lastUpdated: new Date().toISOString().split('T')[0] },
+  ]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
+    { id: 1, name: 'Jorge Ron', role: 'Director General', email: 'jorge@cumbretrib.com', phone: '0990000001', description: 'Supervisa todo, toma decisiones finales, relaciones institucionales de alto nivel.' },
+    { id: 2, name: 'María Pérez', role: 'Coord. Logística', email: 'maria@cumbretrib.com', phone: '0990000002', description: 'Gestión del venue, proveedores, montaje, transporte, catering, equipo AV.' },
+    { id: 3, name: 'Carlos López', role: 'Dir. Marketing', email: 'carlos@cumbretrib.com', phone: '0990000003', description: 'Estrategia digital/offline, campañas, PR y medios.' },
+    { id: 4, name: 'Ana Silva', role: 'Coord. Ponentes', email: 'ana@cumbretrib.com', phone: '0990000004', description: 'Contacto speakers, diseño de agenda, materiales.' },
+    { id: 5, name: 'Luis Torres', role: 'Coord. Comercial', email: 'luis@cumbretrib.com', phone: '0990000005', description: 'Venta de paquetes de patrocinio, relación con auspiciantes.' },
+    { id: 6, name: 'Elena Gómez', role: 'Coord. Alianzas', email: 'elena@cumbretrib.com', phone: '0990000006', description: 'Relación con universidades, colegios profesionales y gremios.' },
+    { id: 7, name: 'Pedro Ruiz', role: 'Coord. Experiencia', email: 'pedro@cumbretrib.com', phone: '0990000007', description: 'Registro, acreditación, kit de bienvenida, atención al público.' },
+    { id: 8, name: 'Sofía Castro', role: 'Coord. Tecnología', email: 'sofia@cumbretrib.com', phone: '0990000008', description: 'Plataforma de ticketing, app, streaming, Wi-Fi.' },
+    { id: 9, name: 'Diego Vega', role: 'Coord. Legal', email: 'diego@cumbretrib.com', phone: '0990000009', description: 'Permisos municipales, plan de contingencia, seguros.' },
   ]);
 
   // Derived Stats
@@ -251,11 +265,11 @@ export default function App() {
       case 'strategy':
         return <StrategyView />;
       case 'planning':
-        return <PlanningView tasks={tasks} setTasks={setTasks} />;
+        return <PlanningView tasks={tasks} setTasks={setTasks} teamMembers={teamMembers} />;
       case 'timeline':
-        return <TimelineView tasks={tasks} setTasks={setTasks} />;
+        return <TimelineView tasks={tasks} setTasks={setTasks} teamMembers={teamMembers} />;
       case 'team':
-        return <TeamView />;
+        return <TeamView teamMembers={teamMembers} setTeamMembers={setTeamMembers} />;
       case 'budget':
         return <BudgetView items={budgetItems} setItems={setBudgetItems} />;
       case 'speakers':
@@ -338,14 +352,34 @@ export default function App() {
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right hidden md:block">
-                <div className="text-sm font-medium text-slate-900">Admin Evento</div>
-                <div className="text-xs text-slate-500">Organizador Principal</div>
-              </div>
-              <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
-                AE
-              </div>
+            <div className="relative">
+              <button 
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity"
+              >
+                <div className="text-right hidden md:block">
+                  <div className="text-sm font-medium text-slate-900">{currentUser?.name.split(' ')[0]}</div>
+                  <div className="text-xs text-slate-500">{currentUser?.role}</div>
+                </div>
+                <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
+                  {currentUser?.name.charAt(0)}
+                </div>
+              </button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
+                  <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Cambiar Usuario</div>
+                  {MOCK_USERS.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => { login(user); setShowUserMenu(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${currentUser?.id === user.id ? 'text-indigo-600 font-medium bg-indigo-50/50' : 'text-slate-700'}`}
+                    >
+                      {user.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -381,4 +415,3 @@ export default function App() {
     </div>
   );
 }
-

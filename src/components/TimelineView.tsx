@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Calendar as CalendarIcon, CheckCircle2, Circle, Edit2, X, Check } from 'lucide-react';
-import { Task } from '../types';
+import { Plus, Calendar as CalendarIcon, CheckCircle2, Circle, Edit2, X, Check, User } from 'lucide-react';
+import { Task, TeamMember } from '../types';
 
 interface TimelineViewProps {
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  teamMembers?: TeamMember[];
 }
 
-export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
+export default function TimelineView({ tasks, setTasks, teamMembers = [] }: TimelineViewProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [tempTask, setTempTask] = useState<Partial<Task>>({});
+  const [viewMode, setViewMode] = useState<'phases' | 'months'>('phases');
 
   // Helper to get phase/month name
   const getPhaseName = (dateStr: string) => {
@@ -19,8 +21,8 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
     const month = date.getMonth(); // 0-11
     const year = date.getFullYear();
     
-    // Custom grouping for Feb-Mar
-    if (year === 2026 && (month === 1 || month === 2)) {
+    // Custom grouping for Feb-Mar only in 'phases' mode
+    if (viewMode === 'phases' && year === 2026 && (month === 1 || month === 2)) {
       return 'Febrero - Marzo';
     }
     
@@ -38,15 +40,27 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
     return acc;
   }, {} as Record<string, Task[]>);
 
+  // Helper to parse phase name to date for sorting
+  const getPhaseDate = (phase: string): number => {
+    if (phase === 'Sin Fecha') return 0;
+    if (phase === 'Post-Evento') return 9999999999999;
+    if (phase === 'Febrero - Marzo') return new Date(2026, 1, 1).getTime(); // Feb 2026
+    
+    const parts = phase.split(' ');
+    if (parts.length === 2) {
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const monthIdx = monthNames.indexOf(parts[0]);
+      const year = parseInt(parts[1]);
+      if (monthIdx !== -1 && !isNaN(year)) {
+        return new Date(year, monthIdx, 1).getTime();
+      }
+    }
+    return 0;
+  };
+
   // Sort phases
-  const phaseOrder = ['Febrero - Marzo', 'Abril 2026', 'Mayo 2026', 'Junio 2026', 'Post-Evento'];
   const sortedPhases = Object.keys(groupedTasks).sort((a, b) => {
-    const idxA = phaseOrder.indexOf(a);
-    const idxB = phaseOrder.indexOf(b);
-    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-    if (idxA !== -1) return -1;
-    if (idxB !== -1) return 1;
-    return a.localeCompare(b);
+    return getPhaseDate(a) - getPhaseDate(b);
   });
 
   const handleSaveTask = () => {
@@ -63,7 +77,8 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
           date: tempTask.date!,
           category: tempTask.category || 'General',
           status: 'pending',
-          priority: 'medium'
+          priority: 'medium',
+          assigneeId: tempTask.assigneeId
         };
         setTasks([...tasks, newTask]);
         setIsAdding(false);
@@ -84,6 +99,12 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
     setTempTask({});
   };
 
+  const getAssigneeName = (assigneeId?: number) => {
+    if (!assigneeId) return null;
+    const member = teamMembers.find(m => m.id === assigneeId);
+    return member ? member.name : null;
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
@@ -92,8 +113,12 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
           <p className="text-slate-500 text-sm">Las tareas se agrupan automáticamente según la fecha asignada.</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
-            Fases / Meses
+          <button 
+            onClick={() => setViewMode(prev => prev === 'phases' ? 'months' : 'phases')}
+            className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2"
+          >
+            <CalendarIcon className="w-4 h-4" />
+            {viewMode === 'phases' ? 'Ver por Meses' : 'Ver por Fases'}
           </button>
           <button 
             onClick={() => { setIsAdding(true); setTempTask({ category: 'General' }); }}
@@ -147,11 +172,24 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
                 <option value="Post-Evento">Post-Evento</option>
               </select>
             </div>
-            <div className="flex gap-2">
-              <button onClick={handleSaveTask} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-indigo-900 mb-1">Asignar a</label>
+              <select 
+                value={tempTask.assigneeId || ''}
+                onChange={e => setTempTask({...tempTask, assigneeId: e.target.value ? Number(e.target.value) : undefined})}
+                className="w-full px-3 py-2 rounded-lg border border-indigo-200"
+              >
+                <option value="">Sin asignar</option>
+                {teamMembers.map(member => (
+                  <option key={member.id} value={member.id}>{member.name} ({member.role})</option>
+                ))}
+              </select>
+            </div>
+            <div className="md:col-span-2 flex gap-2 justify-end">
+              <button onClick={cancelEdit} className="px-3 py-2 text-slate-500 hover:bg-slate-200 rounded-lg">Cancelar</button>
+              <button onClick={handleSaveTask} className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
                 {editingId ? 'Actualizar' : 'Guardar'}
               </button>
-              <button onClick={cancelEdit} className="px-3 py-2 text-slate-500 hover:bg-slate-200 rounded-lg">Cancelar</button>
             </div>
           </div>
         </div>
@@ -187,9 +225,17 @@ export default function TimelineView({ tasks, setTasks }: TimelineViewProps) {
                       <h4 className={`font-medium ${task.status === 'done' ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
                         {task.title}
                       </h4>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 block">
-                        {task.category}
-                      </span>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          {task.category}
+                        </span>
+                        {task.assigneeId && (
+                          <span className="flex items-center gap-1 text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                            <User className="w-3 h-3" />
+                            {getAssigneeName(task.assigneeId)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2">
                       <button onClick={() => startEdit(task)} className="p-1 hover:text-indigo-600">
